@@ -17,6 +17,7 @@ Demos
  * [SVG Inserted with 'Object' Element](http://ariutta.github.io/svg-pan-zoom/demo/object.html)
  * [SVG Inserted with 'Img' Element](http://ariutta.github.io/svg-pan-zoom/demo/img.html) (These cannot be panned/zoomed.)
  * [SVG With custom controls](http://ariutta.github.io/svg-pan-zoom/demo/custom-controls.html)
+ * [Resize SVG container on document resize](http://ariutta.github.io/svg-pan-zoom/demo/resize.html)
 
 How To Use
 ----------
@@ -110,6 +111,7 @@ When you call `svgPanZoom` method it returns an object with following methods:
 * getZoom
 * fit
 * center
+* resize
 
 To programmatically pan, call the pan method with vector as first argument:
 
@@ -177,6 +179,17 @@ var panZoomTiger = svgPanZoom('#demo-tiger');
 
 panZoomTiger.fit();
 panZoomTiger.center();
+```
+
+If you want to fit and center your SVG after its container resize:
+
+```js
+// Get instance
+var panZoomTiger = svgPanZoom('#demo-tiger');
+
+panZoomTiger.resize(); // update SVG cached size and controls positions
+panZoomTiger.fit(true); // dropCache and fit
+panZoomTiger.center(true); // dropCache and center
 ```
 
 Related Work
