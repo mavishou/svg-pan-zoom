@@ -25,7 +25,24 @@ var optionsDefaults = {
 }
 
 SvgPanZoom.prototype.init = function(svg, options) {
+  this.xmlNS = 'http://www.w3.org/XML/1998/namespace';
+  this.svgNS = 'http://www.w3.org/2000/svg';
+  this.xmlnsNS = 'http://www.w3.org/2000/xmlns/';
+  this.xlinkNS = 'http://www.w3.org/1999/xlink';
+  this.evNS = 'http://www.w3.org/2001/xml-events';
+
   this.svg = svg
+  SvgUtils.svg = svg
+  var defs = svg.querySelector('defs')
+  this.defs = defs
+  SvgUtils.defs = defs
+
+  // thanks to http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
+  if (/*@cc_on!@*/false || !!document.documentMode) { // internet explorer
+    SvgUtils._browser = 'ie';
+  } else if (typeof InstallTrigger !== 'undefined') { // firefox
+    SvgUtils._browser = 'firefox';
+  }
 
   // Set options
   this.options = Utils.extend(Utils.extend({}, optionsDefaults), options)
@@ -35,9 +52,9 @@ SvgPanZoom.prototype.init = function(svg, options) {
   this.state = 'none'
 
   // Get dimensions
-  var dimensions = SvgUtils.getSvgDimensions(svg)
-  this.width = dimensions.width
-  this.height = dimensions.height
+  var boundingClientRectNormalized = SvgUtils.getBoundingClientRectNormalized(svg)
+  this.width = boundingClientRectNormalized.width
+  this.height = boundingClientRectNormalized.height
 
   // Get viewport
   this.viewport = SvgUtils.getOrCreateViewport(svg)
@@ -58,13 +75,6 @@ SvgPanZoom.prototype.init = function(svg, options) {
 
   // Init events handlers
   this.setupHandlers()
-
-  // thanks to http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
-  if (/*@cc_on!@*/false || !!document.documentMode) { // internet explorer
-    SvgUtils._browser = 'ie';
-  } else if (typeof InstallTrigger !== 'undefined') { // firefox
-    SvgUtils._browser = 'firefox';
-  }
 
   // TODO what for do we need this?
   // It is replacing window.svgPanZoom constructor with this instance
@@ -130,7 +140,7 @@ SvgPanZoom.prototype.processCTM = function() {
 
 /**
  * Cache initial viewBox value
- * If nok viewBox is defined than use viewport sizes as viewBox values
+ * If no viewBox is defined, then use viewport size/position instead for viewBox values
  */
 SvgPanZoom.prototype.cacheViewBox = function() {
   // ViewBox cache
@@ -147,11 +157,13 @@ SvgPanZoom.prototype.cacheViewBox = function() {
     this._viewBox.width = viewBoxValues[2]
     this._viewBox.height = viewBoxValues[3]
   } else {
-    var boundingClientRect = this.viewport.getBoundingClientRect()
+    var bBox = this.viewport.getBBox();
 
     // Cache viewbox sizes
-    this._viewBox.width = boundingClientRect.width
-    this._viewBox.height = boundingClientRect.height
+    this._viewBox.x = bBox.x;
+    this._viewBox.y = bBox.y;
+    this._viewBox.width = bBox.width
+    this._viewBox.height = bBox.height
   }
 }
 
@@ -292,9 +304,11 @@ SvgPanZoom.prototype.zoomAtPoint = function(svg, point, zoomScale, zoomAbsolute)
     setZoom.a = setZoom.d = zoomScale
   }
 
-  if (setZoom.a < this.options.minZoom * this.initialCTM.a) {setZoom.a = setZoom.d = this.options.minZoom * this.initialCTM.a}
-  if (setZoom.a > this.options.maxZoom * this.initialCTM.a) {setZoom.a = setZoom.d = this.options.maxZoom * this.initialCTM.a}
-  if (setZoom.a !== wasZoom.a) {
+  if (setZoom.a < this.options.minZoom * this.initialCTM.a) {
+    setZoom.a = setZoom.d = this.options.minZoom * this.initialCTM.a
+  } else if (setZoom.a > this.options.maxZoom * this.initialCTM.a) {
+    setZoom.a = setZoom.d = this.options.maxZoom * this.initialCTM.a
+  } else if (setZoom.a !== wasZoom.a) {
     SvgUtils.setCTM(this.viewport, setZoom)
 
     // Cache zoom level
@@ -572,9 +586,9 @@ SvgPanZoom.prototype.getPan = function() {
  */
 SvgPanZoom.prototype.resize = function() {
   // Get dimensions
-  var dimensions = SvgUtils.getSvgDimensions(this.svg)
-  this.width = dimensions.width
-  this.height = dimensions.height
+  var boundingClientRectNormalized = SvgUtils.getBoundingClientRectNormalized(this.svg)
+  this.width = boundingClientRectNormalized.width
+  this.height = boundingClientRectNormalized.height
 
   // Reposition control icons by re-enabling them
   if (this.options.controlIconsEnabled) {
