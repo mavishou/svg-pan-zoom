@@ -44,7 +44,7 @@ module.exports = {
     // Zoom Group
     var zoomGroup = document.createElementNS(instance.svgNS, 'g');
     zoomGroup.setAttribute('id', 'svg-pan-zoom-controls');
-    zoomGroup.setAttribute('transform', 'translate(' + ( instance.width - 70 ) + ' ' + ( instance.height - 76 ) + ') scale(0.75)');
+    zoomGroup.setAttribute('transform', 'translate(' + 20 + ' ' + 20 + ') scale(0.75)');
     zoomGroup.setAttribute('class', 'svg-pan-zoom-control');
 
     // Control elements
